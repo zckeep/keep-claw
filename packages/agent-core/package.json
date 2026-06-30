@@ -1,0 +1,39 @@
+{
+  "name": "@keep-claw/agent-core",
+  "version": "0.0.1",
+  "description": "keepClaw AI Agent core library",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc --watch",
+    "test:run": "tsc -p tsconfig.json && node dist/test.js"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "keepclaw"
+  ],
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.19.17",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.3"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/openai": "^1.5.3",
+    "dotenv": "^17.4.2",
+    "langchain": "^1.5.2"
+  }
+}
