@@ -43,8 +43,7 @@ export class ModelsLangchainController {
       messages.push(humanMessage);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       const response = await model.stream(messages);
-      let isThinking = true;
-      let aiResult = '<think>';
+      let aiResult = '';
       let sessionId = '';
       for await (const chunk of response) {
         console.log(chunk, 'chunk');
@@ -88,20 +87,7 @@ export class ModelsLangchainController {
               isEnd: false,
             }) + '\n',
           );
-        }
-        // 既无 thinking 也无内容 → 跳过（不标记结束，等循环结束统一处理）
-        // 什么都不做
-
-        // 组装 AI 完整回复
-        if (isThinking) {
-          if (thinkingContent) {
-            aiResult += thinkingContent;
-          } else {
-            isThinking = false;
-            aiResult += '</think>\n\n';
-          }
-        }
-        if (!isThinking && content) {
+          // aiResult 只记录纯回复内容（不含 thinking），用于后续历史消息
           aiResult += content;
         }
       }
