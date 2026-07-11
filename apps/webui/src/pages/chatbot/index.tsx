@@ -10,7 +10,14 @@ import { Avatar, Card } from "antd";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import type { ChatMessage, ConversationItem } from "./data";
-import { type ChatStreamChunk, streamChatCompletion } from "./service";
+import {
+  type ChatStreamChunk,
+  streamChatCompletion,
+  fetchConversations,
+  fetchConversationMessages,
+  deleteConversation,
+  type ConversationMeta,
+} from "./service";
 import { useStyles } from "./style";
 
 const WELCOME_TEXT = "🤖 你好，有什么可以帮你？";
@@ -169,6 +176,10 @@ const roleConfig: BubbleListProps["role"] = {
   user: {
     placement: "end",
     avatar: <Avatar icon={<UserOutlined />} />,
+    contentRender: (content: string) => {
+      if (!content) return undefined;
+      return <XMarkdown>{content}</XMarkdown>;
+    },
   },
   ai: {
     placement: "start",
@@ -191,6 +202,15 @@ const roleConfig: BubbleListProps["role"] = {
 const ChatbotPage: React.FC = () => {
   const { styles } = useStyles();
 
+  // 禁用外层滚动，防止消息区滚动时页面抖动
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
   const [conversations, setConversations] = useState<ConversationItem[]>([
     { key: "default", label: "💬 新对话", group: "今天", isDraft: true },
   ]);
@@ -198,6 +218,76 @@ const ChatbotPage: React.FC = () => {
     default: [],
   });
   const [activeKey, setActiveKey] = useState<string>("default");
+  const loadedKeysRef = useRef<Set<string>>(new Set(["default"]));
+
+  // 加载磁盘上的真实会话列表
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const list: ConversationMeta[] = await fetchConversations();
+        if (list.length === 0) return;
+
+        const existing = new Map(conversations.map((c) => [c.key, c]));
+        const loaded = new Set(loadedKeysRef.current);
+
+        const merged: ConversationItem[] = [];
+        list.forEach((item) => {
+          if (existing.has(item.threadId)) {
+            merged.push(existing.get(item.threadId)!);
+            existing.delete(item.threadId);
+          } else {
+            merged.push({
+              key: item.threadId,
+              label: item.title,
+              group: "历史会话",
+              isDraft: false,
+            });
+          }
+        });
+        // 保留未在列表中的草稿
+        existing.forEach((c) => {
+          if (c.isDraft) merged.push(c);
+        });
+
+        setConversations(merged);
+        loadedKeysRef.current = loaded;
+      } catch {
+        // 静默失败
+      }
+    };
+    loadConversations();
+  }, []);
+
+  // 选中一个已存储的会话时，加载其历史消息
+  useEffect(() => {
+    const conv = conversations.find((c) => c.key === activeKey);
+    if (!conv || conv.isDraft) return;
+    if (loadedKeysRef.current.has(activeKey)) return;
+
+    const loadMessages = async () => {
+      try {
+        const msgs = await fetchConversationMessages(activeKey);
+        if (msgs.length === 0) return;
+
+        const chatMessages: ChatMessage[] = msgs.map((m) => ({
+          id: crypto.randomUUID(),
+          role: m.role,
+          content: m.content,
+          thinkContent: m.thinkContent,
+          status: "done" as const,
+        }));
+
+        setMessageMap((prev) => ({
+          ...prev,
+          [activeKey]: chatMessages,
+        }));
+        loadedKeysRef.current.add(activeKey);
+      } catch {
+        // 静默失败
+      }
+    };
+    loadMessages();
+  }, [activeKey, conversations]);
   const [inputValue, setInputValue] = useState("");
   const [isRequesting, setIsRequesting] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -503,8 +593,11 @@ const ChatbotPage: React.FC = () => {
                 groupable
                 menu={(conversation) => ({
                   items: [{ key: "delete", label: "删除", danger: true }],
-                  onClick: ({ key }) => {
+                  onClick: async ({ key }) => {
                     if (key === "delete") {
+                      if (!conversation.isDraft) {
+                        deleteConversation(conversation.key).catch(() => {});
+                      }
                       setConversations((prev) => {
                         const next = prev.filter(
                           (c) => c.key !== conversation.key,
@@ -516,18 +609,18 @@ const ChatbotPage: React.FC = () => {
                         });
 
                         if (next.length === 0) {
-                          const key = crypto.randomUUID();
+                          const newKey = crypto.randomUUID();
                           next.push({
-                            key,
+                            key: newKey,
                             label: "💬 新对话",
                             group: "今天",
                             isDraft: true,
                           });
                           setMessageMap((prevMap) => ({
                             ...prevMap,
-                            [key]: [],
+                            [newKey]: [],
                           }));
-                          setActiveKey(key);
+                          setActiveKey(newKey);
                         } else if (activeKey === conversation.key) {
                           abort();
                           setActiveKey(next[0]?.key ?? "");

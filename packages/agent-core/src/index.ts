@@ -8,7 +8,7 @@ import type { AgentConfig, ModelConfig } from "./types.js";
 import { createAgent as createLangchainAgent } from "langchain";
 export { SystemMessage, AIMessage, HumanMessage } from "langchain";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 export interface AgentContext {
   agent: any;
   model: any;
@@ -42,10 +42,18 @@ export async function createAgent(
   );
   const model = await initStreamModel(config, { enableThinking });
   const checkpointer = new FileSaver(filePath);
+
+  // 如果外部未传 systemPrompt，从配置文件读取
+  const finalSystemPrompt =
+    systemPrompt ??
+    ((config.agentConfig as Record<string, unknown>).systemPrompt as
+      | string
+      | undefined);
+
   const agent = createLangchainAgent({
     model,
     tools: [],
-    systemPrompt,
+    systemPrompt: finalSystemPrompt,
     checkpointer,
   });
   return {

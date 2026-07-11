@@ -109,10 +109,18 @@ export class FileSaver extends MemorySaver {
 
     const dir = path.dirname(this.filePath);
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch {
+        // 目录创建失败，后续写入也会失败，已在外层 catch
+      }
     }
 
-    fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), "utf8");
+    try {
+      fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), "utf8");
+    } catch (e) {
+      console.error("保存记忆失败:", (e as Error).message);
+    }
   }
 
   async put(config: any, checkpoint: any, metadata: any): Promise<any> {
