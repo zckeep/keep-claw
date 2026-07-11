@@ -1,19 +1,19 @@
-import { UserOutlined } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
-import { Bubble, Conversations, Sender, Think, XProvider } from '@ant-design/x';
+import { UserOutlined } from "@ant-design/icons";
+import { PageContainer } from "@ant-design/pro-components";
+import { Bubble, Conversations, Sender, Think, XProvider } from "@ant-design/x";
 import type {
   BubbleItemType,
   BubbleListProps,
-} from '@ant-design/x/es/bubble/interface';
-import XMarkdown from '@ant-design/x-markdown';
-import { Avatar, Card } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+} from "@ant-design/x/es/bubble/interface";
+import XMarkdown from "@ant-design/x-markdown";
+import { Avatar, Card } from "antd";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import type { ChatMessage, ConversationItem } from './data';
-import { type ChatStreamChunk, streamChatCompletion } from './service';
-import { useStyles } from './style';
+import type { ChatMessage, ConversationItem } from "./data";
+import { type ChatStreamChunk, streamChatCompletion } from "./service";
+import { useStyles } from "./style";
 
-const WELCOME_TEXT = '🤖 你好，有什么可以帮你？';
+const WELCOME_TEXT = "🤖 你好，有什么可以帮你？";
 
 const TypewriterTitle: React.FC = () => {
   const { styles } = useStyles();
@@ -42,22 +42,22 @@ const TypewriterTitle: React.FC = () => {
 };
 
 const STREAMING_TEXT_STYLE: React.CSSProperties = {
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
+  whiteSpace: "pre-wrap",
+  wordBreak: "break-word",
 };
 const THINK_TAG_PATTERN = /<\/?think>/gi;
 const THINK_TAG_PREFIX_PATTERN = /<(?:\/)?t(?:h(?:i(?:n(?:k?)?)?)?)?$/i;
 const AI_AVATAR_STYLE: React.CSSProperties = {
-  background: 'transparent',
+  background: "transparent",
   fontSize: 22,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: '-2px',
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: "-2px",
 };
 
 const sanitizeThinkText = (content: string): string =>
-  content.replace(THINK_TAG_PATTERN, '').replace(THINK_TAG_PREFIX_PATTERN, '');
+  content.replace(THINK_TAG_PATTERN, "").replace(THINK_TAG_PREFIX_PATTERN, "");
 
 const aiAvatarNode = <Avatar style={AI_AVATAR_STYLE}>🤖</Avatar>;
 
@@ -165,13 +165,13 @@ const ProgressiveMarkdown: React.FC<{
   );
 };
 
-const roleConfig: BubbleListProps['role'] = {
+const roleConfig: BubbleListProps["role"] = {
   user: {
-    placement: 'end',
+    placement: "end",
     avatar: <Avatar icon={<UserOutlined />} />,
   },
   ai: {
-    placement: 'start',
+    placement: "start",
     avatar: aiAvatarNode,
     contentRender: (
       content: string,
@@ -179,7 +179,7 @@ const roleConfig: BubbleListProps['role'] = {
     ) => {
       if (info?.loading || !content) return undefined;
 
-      const isStreaming = info?.status === 'updating';
+      const isStreaming = info?.status === "updating";
 
       return (
         <ProgressiveMarkdown content={content} isStreaming={isStreaming} />
@@ -192,13 +192,13 @@ const ChatbotPage: React.FC = () => {
   const { styles } = useStyles();
 
   const [conversations, setConversations] = useState<ConversationItem[]>([
-    { key: 'default', label: '💬 新对话', group: '今天', isDraft: true },
+    { key: "default", label: "💬 新对话", group: "今天", isDraft: true },
   ]);
   const [messageMap, setMessageMap] = useState<Record<string, ChatMessage[]>>({
     default: [],
   });
-  const [activeKey, setActiveKey] = useState<string>('default');
-  const [inputValue, setInputValue] = useState('');
+  const [activeKey, setActiveKey] = useState<string>("default");
+  const [inputValue, setInputValue] = useState("");
   const [isRequesting, setIsRequesting] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const chunkQueueRef = useRef<ChatStreamChunk[]>([]);
@@ -211,7 +211,7 @@ const ChatbotPage: React.FC = () => {
     () =>
       [...activeMessages]
         .reverse()
-        .find((message) => message.role === 'assistant' && message.id)?.id,
+        .find((message) => message.role === "assistant" && message.id)?.id,
     [activeMessages],
   );
 
@@ -238,7 +238,7 @@ const ChatbotPage: React.FC = () => {
     if (!question || isRequesting) return;
 
     const targetKey = activeKey;
-    setInputValue('');
+    setInputValue("");
     setConversations((prev) =>
       prev.map((c) =>
         c.key === targetKey && c.isDraft
@@ -249,9 +249,9 @@ const ChatbotPage: React.FC = () => {
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
-      role: 'user',
+      role: "user",
       content: question,
-      status: 'done',
+      status: "done",
     };
     const assistantRequestId = crypto.randomUUID();
 
@@ -261,11 +261,11 @@ const ChatbotPage: React.FC = () => {
         ...(prev[targetKey] ?? []),
         userMessage,
         {
-          id: '',
+          id: "",
           requestId: assistantRequestId,
-          role: 'assistant',
-          content: '',
-          status: 'updating',
+          role: "assistant",
+          content: "",
+          status: "updating",
         },
       ],
     }));
@@ -287,12 +287,12 @@ const ChatbotPage: React.FC = () => {
                   id: chunk.id || message.id,
                   rawThinkContent:
                     chunk.thinkingContent != null
-                      ? `${message.rawThinkContent ?? ''}${chunk.thinkingContent}`
+                      ? `${message.rawThinkContent ?? ""}${chunk.thinkingContent}`
                       : message.rawThinkContent,
                   thinkContent:
                     chunk.thinkingContent != null
                       ? sanitizeThinkText(
-                          `${message.rawThinkContent ?? ''}${chunk.thinkingContent}`,
+                          `${message.rawThinkContent ?? ""}${chunk.thinkingContent}`,
                         )
                       : message.thinkContent,
                   content:
@@ -301,10 +301,10 @@ const ChatbotPage: React.FC = () => {
                       : message.content,
                   isThinking: chunk.isEnd
                     ? false
-                    : typeof chunk.thinking === 'boolean'
+                    : typeof chunk.thinking === "boolean"
                       ? chunk.thinking
                       : message.isThinking,
-                  status: chunk.isEnd ? 'done' : 'updating',
+                  status: chunk.isEnd ? "done" : "updating",
                 }
               : message,
           ),
@@ -370,14 +370,14 @@ const ChatbotPage: React.FC = () => {
             ? {
                 ...message,
                 isThinking: false,
-                status: message.status === 'error' ? 'error' : 'done',
+                status: message.status === "error" ? "error" : "done",
               }
             : message,
         ),
       }));
     } catch (error) {
       const isAborted =
-        error instanceof DOMException && error.name === 'AbortError';
+        error instanceof DOMException && error.name === "AbortError";
 
       setMessageMap((prev) => ({
         ...prev,
@@ -387,9 +387,9 @@ const ChatbotPage: React.FC = () => {
                 ...message,
                 content:
                   message.content ||
-                  (isAborted ? '已停止生成。' : '请求失败，请稍后重试。'),
+                  (isAborted ? "已停止生成。" : "请求失败，请稍后重试。"),
                 isThinking: false,
-                status: isAborted ? 'done' : 'error',
+                status: isAborted ? "done" : "error",
               }
             : message,
         ),
@@ -406,7 +406,7 @@ const ChatbotPage: React.FC = () => {
   const newChat = () => {
     const key = crypto.randomUUID();
     setConversations((prev) => [
-      { key, label: '新对话', group: '今天', isDraft: true },
+      { key, label: "新对话", group: "今天", isDraft: true },
       ...prev,
     ]);
     setMessageMap((prev) => ({ ...prev, [key]: [] }));
@@ -421,25 +421,25 @@ const ChatbotPage: React.FC = () => {
   const bubbleItems = useMemo<BubbleItemType[]>(
     () =>
       activeMessages.flatMap((message) => {
-        const isAI = message.role === 'assistant';
+        const isAI = message.role === "assistant";
         const thinkContent = isAI ? message.thinkContent : undefined;
-        const isUpdating = message.status === 'updating';
+        const isUpdating = message.status === "updating";
         const hasVisibleContent = Boolean(
           message.content || thinkContent || message.isThinking,
         );
 
         const item: BubbleItemType = {
           key: message.requestId ?? message.id,
-          role: isAI ? 'ai' : 'user',
+          role: isAI ? "ai" : "user",
           content: message.content,
           loading: isAI && isUpdating && !hasVisibleContent,
-          status: isUpdating ? 'updating' : undefined,
+          status: isUpdating ? "updating" : undefined,
         };
 
         if (isAI && (thinkContent || message.isThinking)) {
           item.header = (
             <Think
-              title={message.isThinking ? '思考中' : '已深度思考'}
+              title={message.isThinking ? "思考中" : "已深度思考"}
               loading={message.isThinking}
               blink={message.isThinking}
               defaultExpanded
@@ -451,7 +451,7 @@ const ChatbotPage: React.FC = () => {
                   charsPerSecond={60}
                 />
               ) : (
-                '正在整理思路...'
+                "正在整理思路..."
               )}
             </Think>
           );
@@ -469,27 +469,27 @@ const ChatbotPage: React.FC = () => {
       ghost
       childrenContentStyle={{
         paddingBlock: 0,
-        height: 'calc(100vh - 160px)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
+        height: "calc(100vh - 160px)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       <Card
         variant="borderless"
         style={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
         }}
         styles={{
           body: {
             flex: 1,
             padding: 0,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
           },
         }}
       >
@@ -502,9 +502,9 @@ const ChatbotPage: React.FC = () => {
                 onActiveChange={setActiveKey}
                 groupable
                 menu={(conversation) => ({
-                  items: [{ key: 'delete', label: '删除', danger: true }],
+                  items: [{ key: "delete", label: "删除", danger: true }],
                   onClick: ({ key }) => {
-                    if (key === 'delete') {
+                    if (key === "delete") {
                       setConversations((prev) => {
                         const next = prev.filter(
                           (c) => c.key !== conversation.key,
@@ -519,8 +519,8 @@ const ChatbotPage: React.FC = () => {
                           const key = crypto.randomUUID();
                           next.push({
                             key,
-                            label: '💬 新对话',
-                            group: '今天',
+                            label: "💬 新对话",
+                            group: "今天",
                             isDraft: true,
                           });
                           setMessageMap((prevMap) => ({
@@ -530,14 +530,14 @@ const ChatbotPage: React.FC = () => {
                           setActiveKey(key);
                         } else if (activeKey === conversation.key) {
                           abort();
-                          setActiveKey(next[0]?.key ?? '');
+                          setActiveKey(next[0]?.key ?? "");
                         }
                         return next;
                       });
                     }
                   },
                 })}
-                creation={{ onClick: newChat, label: '新建对话' }}
+                creation={{ onClick: newChat, label: "新建对话" }}
               />
             </div>
 
@@ -569,7 +569,7 @@ const ChatbotPage: React.FC = () => {
                   onCancel={abort}
                   placeholder="输入消息，按 Enter 发送..."
                   autoSize={{ minRows: 4, maxRows: 8 }}
-                  style={{ maxWidth: 940, width: '100%' }}
+                  style={{ maxWidth: 940, width: "100%" }}
                   styles={{ input: { paddingBlock: 0 } }}
                 />
               </div>

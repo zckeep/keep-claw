@@ -24,7 +24,9 @@ export class ModelsLangchainController {
       const input = decodeURIComponent(query.input).trim();
       const chatId = query.id ?? '';
       // eslint-disable-next-line
-      const { model, config } = await createAgent('textAgent');
+      const { model, config } = await createAgent('qwen', {
+        threadId: chatId || undefined,
+      });
       let messages = this.messageMap[chatId];
       if (!messages) {
         this.messageMap[chatId] = [];

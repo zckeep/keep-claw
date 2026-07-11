@@ -1,5 +1,5 @@
 // src/pages/chatbot/style.ts
-import { createStyles } from 'antd-style';
+import { createStyles } from "antd-style";
 
 export const useStyles = createStyles(({ css, token }) => ({
   layout: css`
@@ -44,6 +44,12 @@ export const useStyles = createStyles(({ css, token }) => ({
     border-top: 1px solid ${token.colorBorderSecondary};
     display: flex;
     justify-content: center;
+
+    textarea:focus,
+    textarea:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
   `,
 
   footerCenter: css`
@@ -55,6 +61,12 @@ export const useStyles = createStyles(({ css, token }) => ({
     padding: ${token.paddingLG}px;
     gap: 32px;
     margin-top: -10%;
+
+    textarea:focus,
+    textarea:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
   `,
 
   welcomeTitle: css`

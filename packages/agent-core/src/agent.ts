@@ -8,7 +8,10 @@ export interface StreamModelConfig {
   modelConfig: ModelConfig;
 }
 
-export async function initStreamModel(config: StreamModelConfig): Promise<any> {
+export async function initStreamModel(
+  config: StreamModelConfig,
+  extraConfig: { enableThinking?: boolean },
+): Promise<any> {
   const { modelConfig } = config;
   const modelName = modelConfig.id;
   const modelProvider = modelConfig.provider;
@@ -16,6 +19,7 @@ export async function initStreamModel(config: StreamModelConfig): Promise<any> {
   const modelApiKey = modelConfig.api_key;
   const modelUseEvnApiKey = modelConfig.use_env_api_key === 1;
   const modelTemperature = modelConfig.temperature;
+  const { enableThinking } = extraConfig;
   // 读取环境变量key，兜底空字符串
   const apiKey = modelUseEvnApiKey
     ? (process.env[modelApiKey] ?? "")
@@ -24,6 +28,9 @@ export async function initStreamModel(config: StreamModelConfig): Promise<any> {
     modelProvider,
     configuration: {
       baseURL: modelBaseUrl,
+    },
+    modelKwargs: {
+      enable_thinking: enableThinking,
     },
     apiKey,
     temperature: modelTemperature,
