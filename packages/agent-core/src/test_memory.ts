@@ -40,7 +40,7 @@ function isEnd(chunk: StreamChunk) {
 async function testMemory(message: string) {
   const threadId = "96d7de1a-6059-47fc-a394-385a3533e6ed";
   let enableThinking = true;
-  const { agent } = await createAgent("qwen", {
+  const { agent, close } = await createAgent("qwen", {
     threadId,
   });
   try {
@@ -118,6 +118,11 @@ async function testMemory(message: string) {
         hasOutputContentHead = false;
       }
     }
-  } catch (error) {}
+  } catch (error) {
+  } finally {
+    await close();
+  }
 }
-testMemory("我们刚才聊了什么？");
+// testMemory("我们刚才聊了什么？");
+// testMemory("当前目录下有哪些文件");
+testMemory("执行 ls-al 命令");

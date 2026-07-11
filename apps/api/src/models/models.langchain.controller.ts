@@ -15,17 +15,16 @@ export class ModelsLangchainController {
   @Get()
   async stream(@Query() query: StreamQuery, @Res() res: Response) {
     if (!query.input) return;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    const input = decodeURIComponent(query.input).trim();
+    const chatId = query.id || crypto.randomUUID();
+
+    // 使用 agent（内置 FileSaver + systemPrompt），无需手动管理消息历史
+    const { agent, close } = await createAgent('qwen', {
+      threadId: chatId,
+    });
     try {
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      const input = decodeURIComponent(query.input).trim();
-      const chatId = query.id || crypto.randomUUID();
-
-      // 使用 agent（内置 FileSaver + systemPrompt），无需手动管理消息历史
-      const { agent } = await createAgent('qwen', {
-        threadId: chatId,
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line
       const response = await agent.stream(
         { messages: [{ role: 'user', content: input }] },
         {
@@ -110,6 +109,8 @@ export class ModelsLangchainController {
         }),
       );
       res.end();
+    } finally {
+      await close();
     }
   }
 }
