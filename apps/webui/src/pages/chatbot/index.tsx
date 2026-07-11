@@ -297,13 +297,6 @@ const ChatbotPage: React.FC = () => {
   const flushResolversRef = useRef<Array<() => void>>([]);
   const isFlushingRef = useRef(false);
   const activeMessages = messageMap[activeKey] ?? [];
-  const latestAssistantMessageId = useMemo(
-    () =>
-      [...activeMessages]
-        .reverse()
-        .find((message) => message.role === "assistant" && message.id)?.id,
-    [activeMessages],
-  );
 
   const clearChunkFlush = () => {
     chunkQueueRef.current = [];
@@ -444,7 +437,7 @@ const ChatbotPage: React.FC = () => {
 
       await streamChatCompletion(question, {
         signal: controller.signal,
-        id: latestAssistantMessageId,
+        id: targetKey,
         onChunk: (chunk) => {
           chunkQueueRef.current.push(chunk);
           scheduleFlush();
